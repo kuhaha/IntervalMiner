@@ -12,16 +12,14 @@ public class TestUnit {
 		sequenceDatabase.loadFile(inputfile);
 		int sequenceCount = sequenceDatabase.size();
 		
-		System.out.println(sequenceCount);
-		int minsup = 50; // min support in percentage
+		int minsup = 50; // minsup in percentage
 		int support = (int) (minsup * sequenceCount / 100);
 		
-		System.out.println("support:"+minsup+"%, sup="+support);
-
-		sequenceDatabase.print();
+		System.out.println("support= "+minsup+"%, supp= "+support);
+		System.out.println();
 		
-		sequenceDatabase.printSTIs();
-
+		SequenceHandler.print();
+		sequenceDatabase.print();
 	}
 	public static String fileToPath(String filename) throws UnsupportedEncodingException{
 		URL url = TestBIDEPlus.class.getResource(filename);

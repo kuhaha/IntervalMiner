@@ -2,19 +2,20 @@ package ca.pfv.spmf.algorithms.sequentialpatterns.IntervalMiner;
 
 /***
  * 
- * @author young
- * static finalants for time interval event sequence database format
+ * @author kuhaha
+ * static constants for time interval event sequence database format
  */
 public class Constants {
-	  private Constants(){ }// forbid instance generation
-	  public static final String HEADING1 = "^startToncepts.*";
-	  public static final String HEADING2 = "^numberOfEntities.*";
-	  public static final String ISENTITY = "[0-9]+,[0-9]+;";
-	  public static final String VDELIMITER = ",";// delimiter between start, finish, symbol
-	  public static final String EDELIMITER = ";";
+	  private Constants(){ 
+		// prevent instance generation  
+	  }
+	  public static final String HEADING1 = "^startToncepts.*";// RE
+	  public static final String HEADING2 = "^numberOfEntities.*"; // RE
+	  public static final String ISENTITY = "[0-9]+,[0-9]+;"; //RE
+	  public static final String VDELIMITER = ",";// delimiter between start, finish and symbol
+	  public static final String EDELIMITER = ";";// delimiter between event intervals
 	  
-	  
-      //Allen's tmporal relations
+      //Allen's temporal relations
       public static final char ALLEN_BEFORE = '<';
       public static final char ALLEN_MEET = 'm';
       public static final char ALLEN_OVERLAP = 'o';

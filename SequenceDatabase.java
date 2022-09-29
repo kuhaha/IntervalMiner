@@ -38,24 +38,16 @@ import java.util.Set;
 public class SequenceDatabase {
 
 	/** a matrix to store the sequences in this database */
-	//raw sti sequences <start,finish, symbol>
-	protected List<STI[]> sti_sequences = new ArrayList<STI[]>();
-	
+
 	//itemset sequence, 
 	// an itemset is a set of items with a same start point
 	protected List<int[]> sequences = new ArrayList<int[]>();
-	
-	//mapping each symbol to a list of its occrrences, 
-	// an occurrence is a map from seq_id to the position in sti_sequence
-	protected Map<Integer,Map<Integer, Integer>> occurrences = new HashMap<>();
-		
-//	protected Map<Integer,Integer> freq = new HashMap<Integer,Integer>();	
 	
 	/** the total number of item occurrences in this database
 	 * (variable to be used for statistics) */
 	protected long itemOccurrenceCount = 0;
 	
-	protected int minsup = 1; // minimal suppport in percentage
+	protected int minsup = 1; // minimal support in percentage
 	
 	/**
 	 * Method to load a sequence database from a text file in SPMF format.
@@ -65,20 +57,18 @@ public class SequenceDatabase {
 	public void loadFile(String path) throws IOException {
 		// initialize the variable to calculate the total number of item occurrence
 		itemOccurrenceCount = 0;
-		// initalize the list of arrays for storing sequences
-		sti_sequences = new ArrayList<STI[]>();
+		// initialize the list of arrays for storing sequences
+		SequenceHandler.sti_sequences = new ArrayList<STI[]>();
 		//sequences = new ArrayList<Integer[]>();
 
 		String thisLine; // variable to read each line.
 		BufferedReader myInput = null;
-		
-		
 		try {
 			FileInputStream fin = new FileInputStream(new File(path));
 			myInput = new BufferedReader(new InputStreamReader(fin));
 		
-			// Read raw event sequences and transform each sequence to an itemset sequence in SPMF format.  
-			// A item is identified by its symbol, an itemset is the set of items with same start point
+			// Read event sequences from file and transform each sequence to an itemset sequence in SPMF format.  
+			// A item is identified by symbol, an itemset is the set of items with same start point
 			// STI or sti : symbolic time interval
 			while ((thisLine = myInput.readLine()) != null) {
 				
@@ -99,16 +89,10 @@ public class SequenceDatabase {
 					// we will store the sequence as a list of STIs in memory
 					STI[] sti_sequence = new STI[tokens.length];// current sti sequence	
 					
-					// as well as convert STI represention to SPMF format of itemset representation
+					// as well as convert STI representation to SPMF format of itemset representation
 					List<Integer> itemset_sequence = new ArrayList<Integer>();// current item sequence
 					
-					Set<Integer> occ_sym =  new HashSet<>(); // symbols aleady seen in the sequence
-
 					int itemset = 0;
-
-					// (1) an STI object, (2) an item in spmf fortmat, start-aligned items form an itemset 
-					// add them the array representing the current sequence.
-
 					for(int j=0; j < tokens.length; j++){
 						String[]sti = tokens[j].split(Constants.VDELIMITER);
 						int st = Integer.parseInt(sti[0]); //interval start
@@ -126,12 +110,12 @@ public class SequenceDatabase {
 						
 						itemOccurrenceCount++;
 									
-						// Inverted-index: symbol to its occurreces in the sti sequences: sym -> seq -> pos
-						int seq = sti_sequences.size();
-						if (!this.occurrences.containsKey(sym)) {
-							this.occurrences.put(sym, new HashMap<Integer, Integer>());
+						// Inverted-index: symbol to its occurrences: sym -> seq -> pos
+						int seq = SequenceHandler.sti_sequences.size();
+						if (!SequenceHandler.occurrences.containsKey(sym)) {
+							SequenceHandler.occurrences.put(sym, new HashMap<Integer, Integer>());
 						}
-						Map<Integer,Integer> occ = this.occurrences.get(sym);
+						Map<Integer,Integer> occ = SequenceHandler.occurrences.get(sym);
 						if (! occ.containsValue(j)) {
 							occ.put(seq, j);
 						}
@@ -140,7 +124,7 @@ public class SequenceDatabase {
 					// add the sequence to the list of sequences
 					this.sequences.add(itemset_sequence.stream().mapToInt(i->i).toArray());
 					
-					this.sti_sequences.add(sti_sequence);
+					SequenceHandler.sti_sequences.add(sti_sequence);
 				}
 			}
 		} catch (Exception e) {
@@ -156,7 +140,7 @@ public class SequenceDatabase {
 	 * Print this sequence database to System.out.
 	 */
 	public void print() {
-		System.out.println("============  SEQUENCE DATABASE ==========");
+		System.out.println("============ SPMF SEQUENCE DATABASE =======");
 		System.out.println(toString());
 	}
 	
@@ -164,7 +148,7 @@ public class SequenceDatabase {
 	 * Print statistics about this database.
 	 */
 	public void printDatabaseStats() {
-		System.out.println("============  STATS ==========");
+		System.out.println("============= STATS ==========");
 		System.out.println("Number of sequences : " + sequences.size());
 		
 		// Calculate the average size of sequences in this database
@@ -183,16 +167,10 @@ public class SequenceDatabase {
 			buffer.append(i + ":  ");
 			
 			// get that sequence
-			int[] sequence = sequences.get(i);
-			
-			// for each token in that sequence (items, or separators between items)
-			// we will print it in a human-readable way
-			
+			int[] sequence = sequences.get(i);			
 			for(Integer token : sequence){
 				buffer.append(token.toString() + " ");
 			}
-		
-			// print each item print eac
 			buffer.append(System.lineSeparator());
 		}
 		return buffer.toString();
@@ -213,39 +191,4 @@ public class SequenceDatabase {
 	public List<int[]> getSequences() {
 		return this.sequences;
 	}
-	
-
-	/**
-	 * Get the index occurrences from this sequence database.
-	 * @return A list of sequences (int[]) in SPMF format.
-	 */
-	public Map<Integer, Map<Integer,Integer>> getOccurrences() {
-		return this.occurrences;
-	}
-	
-	public void printSTIs() {
-		System.out.println("=========  STI SEQUENCE DATABASE ==========");
-		
-		StringBuilder buffer = new StringBuilder();
-
-		// for each sequence
-		for (int i=0; i < sti_sequences.size(); i++) { 
-			buffer.append(i + ":  ");
-			
-			// get that sequence
-			STI[] sti_sequence = sti_sequences.get(i);
-			
-			// for each token in that sequence (items, or separators between items)
-			// we will print it in a human-readable way
-			
-			for(STI token : sti_sequence){
-				buffer.append(token.toString() + "; ");
-			}
-		
-			// print each item print eac
-			buffer.append(System.lineSeparator());
-		}
-		System.out.println(buffer);
-	}
-
 }

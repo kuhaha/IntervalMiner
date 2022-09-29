@@ -209,6 +209,8 @@ public class AlgoBIDEPlus{
 		sequenceDatabase = new SequenceDatabase(); 
 		sequenceDatabase.loadFile(inputFile);
 //		sequenceDatabase.print();
+
+		this.minsuppRelative = 100*minsup/sequenceDatabase.size();
 		
 		// run the algorithm
 		bide(sequenceDatabase, outputFilePath);
@@ -2366,7 +2368,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 	 */
 	public void printStatistics() {
 		StringBuilder r = new StringBuilder(200);
-		r.append("============  Symbolic Interval Valued BIDE+  - SPMF 0.99c - 2016 - STATISTICS =====\n Total time ~ ");
+		r.append("==== Interval Miner IM-BIDE+ - SPMF 0.99c - 2016 - STATISTICS =====\n Total time ~ ");
 
 		r.append(endTime - startTime);
 		r.append(" ms\n");

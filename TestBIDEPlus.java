@@ -13,7 +13,7 @@ public class TestBIDEPlus {
 
 	public static void main(String [] arg) throws IOException{    
 		// Load a sequence database
-		String inputfile = fileToPath("datasets/asl.csv");
+		String inputfile = fileToPath("datasets/toy.csv");
 		// Create an instance of the algorithm
 		AlgoBIDEPlus algo  = new AlgoBIDEPlus();
 		
@@ -21,7 +21,7 @@ public class TestBIDEPlus {
         // each pattern appears will be shown in the result
         boolean showSequenceIdentifiers = true;
 		
-        double minsupp = 50; // in perentage
+        double minsupp = 50; // in percentage
 		// execute the algorithm
 		SequentialPatterns patterns = algo.runAlgorithm(inputfile, minsupp, null);  
 			
@@ -31,6 +31,6 @@ public class TestBIDEPlus {
 	
 	public static String fileToPath(String filename) throws UnsupportedEncodingException{
 		URL url = TestBIDEPlus.class.getResource(filename);
-		 return java.net.URLDecoder.decode(url.getPath(),"UTF-8");
+		return java.net.URLDecoder.decode(url.getPath(),"UTF-8");
 	}
 }
