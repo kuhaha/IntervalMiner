@@ -29,7 +29,7 @@ public class SequentialPatterns {
 	// A list of list is used to stored the sequential patterns.
 	// At position i, a list of sequential patterns contains
 	// all sequential patterns of size i.
-	public final List<List<SequentialPattern>> levels = new ArrayList<List<SequentialPattern>>();  // itemset class� par taille
+	public final List<List<SequentialPattern>> levels = new ArrayList<List<SequentialPattern>>();  // itemset class par taille
 	// the total number of sequential patterns
 	public int sequenceCount=0;
 	

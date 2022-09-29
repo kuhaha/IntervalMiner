@@ -19,6 +19,20 @@ public class SequenceHandler {
 	// an occurrence is a map from seq_id to the position in sti_sequence
 	protected static Map<Integer,Map<Integer, Integer>> occurrences = new HashMap<>();
 	
+	public static void addOccurrence(int sym, int j) {
+		int seq = sti_sequences.size();
+		if (!occurrences.containsKey(sym)) {
+			occurrences.put(sym, new HashMap<Integer, Integer>());
+		}
+		Map<Integer,Integer> occ = occurrences.get(sym);
+		if (! occ.containsValue(j)) {
+			occ.put(seq, j);
+		}
+	}
+	public static void addSequence(STI[] sti_sequence) {
+		sti_sequences.add(sti_sequence);
+	}
+	
 	public static void print() {
 		System.out.println("=========  STI SEQUENCE DATABASE ==========");
 		System.out.println(ToString());

@@ -106,25 +106,18 @@ public class SequenceDatabase {
 							}
 							itemset = st;	
 						}
-						itemset_sequence.add(sym);
-						
+						itemset_sequence.add(sym);	
 						itemOccurrenceCount++;
-									
+					
 						// Inverted-index: symbol to its occurrences: sym -> seq -> pos
-						int seq = SequenceHandler.sti_sequences.size();
-						if (!SequenceHandler.occurrences.containsKey(sym)) {
-							SequenceHandler.occurrences.put(sym, new HashMap<Integer, Integer>());
-						}
-						Map<Integer,Integer> occ = SequenceHandler.occurrences.get(sym);
-						if (! occ.containsValue(j)) {
-							occ.put(seq, j);
-						}
+						SequenceHandler.addOccurrence(sym, j);
+				
 					}
 					itemset_sequence.add(-2); // end of the sequence
 					// add the sequence to the list of sequences
 					this.sequences.add(itemset_sequence.stream().mapToInt(i->i).toArray());
 					
-					SequenceHandler.sti_sequences.add(sti_sequence);
+					SequenceHandler.addSequence(sti_sequence);
 				}
 			}
 		} catch (Exception e) {
