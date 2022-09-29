@@ -17,11 +17,11 @@ public class TestBIDEPlus {
 		// Create an instance of the algorithm
 		AlgoBIDEPlus algo  = new AlgoBIDEPlus();
 		
-        // if you set the following parameter to true, the sequence ids of the sequences where
-        // each pattern appears will be shown in the result
-        boolean showSequenceIdentifiers = true;
+		// if you set the following parameter to true, the sequence ids of the sequences where
+		// each pattern appears will be shown in the result
+		boolean showSequenceIdentifiers = true;
 		
-        double minsupp = 50; // in percentage
+		double minsupp = 50; // in percentage
 		// execute the algorithm
 		SequentialPatterns patterns = algo.runAlgorithm(inputfile, minsupp, null);  
 			
