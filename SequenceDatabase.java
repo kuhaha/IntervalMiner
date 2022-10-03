@@ -84,7 +84,7 @@ public class SequenceDatabase {
 						&& !thisLine.matches(Constants.ISENTITY)) {
 					
 					// split this line according to event delimiter and process the line
-					String[] tokens = thisLine.split(Constants.EDELIMITER);
+					String[] tokens = thisLine.split(Constants.EVENT_DELIMITER);
 
 					// we will store the sequence as a list of STIs in memory
 					STI[] sti_sequence = new STI[tokens.length];// current sti sequence	
@@ -94,15 +94,19 @@ public class SequenceDatabase {
 					
 					int itemset = 0;
 					for(int j=0; j < tokens.length; j++){
-						String[]sti = tokens[j].split(Constants.VDELIMITER);
+						String[]sti = tokens[j].split(Constants.ITEM_DELIMITER);
 						int st = Integer.parseInt(sti[0]); //interval start
 						int fn = Integer.parseInt(sti[1]); //interval finish
 						int sym = Integer.parseInt(sti[2]);//interval state symbol
-						sti_sequence[j] = new STI(st,fn,sym); 
+						int sym_num = Constants.SYMBOL_FROM + sym;
+						sti_sequence[j] = new STI(st,fn,sym);
+
+						Tiep tiep_st = new Tiep(st, sym_num);
+						Tiep tiep_fn = new Tiep(fn, -sym_num);
 	
 						if (itemset != st ) { // a new itemset
 							if (itemset != 0) {
-								itemset_sequence.add(-1);
+								itemset_sequence.add(Constants.ITEMSET_END);
 							}
 							itemset = st;	
 						}
@@ -113,7 +117,7 @@ public class SequenceDatabase {
 						SequenceHandler.addOccurrence(sym, j);
 				
 					}
-					itemset_sequence.add(-2); // end of the sequence
+					itemset_sequence.add(Constants.SEQUENCE_END); // end of the sequence
 					// add the sequence to the list of sequences
 					this.sequences.add(itemset_sequence.stream().mapToInt(i->i).toArray());
 					

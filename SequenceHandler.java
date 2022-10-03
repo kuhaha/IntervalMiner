@@ -38,7 +38,7 @@ public class SequenceHandler {
 		sti_sequences.add(sti_sequence);
 	}
 	
-	// get the STI with symbol `sym` occurring in a specofoc sequence `seq`    
+	// get the STI with symbol `sym` occurring in a specific sequence `seq`    
 	public static STI getSTI(int sym, int seq) {
 		if (occurrences.containsKey(sym)
 			&& occurrences.get(sym).containsKey(seq)) 
@@ -49,7 +49,7 @@ public class SequenceHandler {
 		return null;
 	}
 	
-	// get the STI with symbol `sym` occurring in a specofoc sequence `seq`    
+	// get the STI with symbol `sym` occurring in a specific sequence `seq`    
 	public static String getRelation(SequentialPattern pattern) {
 		StringBuilder r = new StringBuilder("");
 		List<STI> sti_sequence = new ArrayList<STI>();
