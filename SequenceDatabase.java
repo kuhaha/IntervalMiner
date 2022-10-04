@@ -22,11 +22,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Implementation of a sequence database, where each sequence is implemented
@@ -99,10 +95,10 @@ public class SequenceDatabase {
 						int fn = Integer.parseInt(sti[1]); //interval finish
 						int sym = Integer.parseInt(sti[2]);//interval state symbol
 						int sym_num = Constants.SYMBOL_FROM + sym;
-						sti_sequence[j] = new STI(st,fn,sym);
-
-						Tiep tiep_st = new Tiep(st, sym_num);
-						Tiep tiep_fn = new Tiep(fn, -sym_num);
+						STI intv = new STI(st,fn,sym);
+						Tiep tiep_st = new Tiep(st, sym_num,intv);
+						Tiep tiep_fn = new Tiep(fn, -sym_num,intv);
+						sti_sequence[j] = intv;
 	
 						if (itemset != st ) { // a new itemset
 							if (itemset != 0) {
