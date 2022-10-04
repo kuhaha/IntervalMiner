@@ -94,7 +94,9 @@ public class SequenceDatabase {
 						int st = Integer.parseInt(sti[0]); //interval start
 						int fn = Integer.parseInt(sti[1]); //interval finish
 						int sym = Integer.parseInt(sti[2]);//interval state symbol
+
 						int sym_num = Constants.SYMBOL_FROM + sym;
+						
 						STI intv = new STI(st,fn,sym);
 						Tiep tiep_st = new Tiep(st, sym_num,intv);
 						Tiep tiep_fn = new Tiep(fn, -sym_num,intv);
