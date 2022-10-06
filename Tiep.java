@@ -31,8 +31,13 @@ public class Tiep implements Comparable<Tiep>{
     public int compareTo(Tiep t){
         int cmp = Integer.compare(time, t.time);
         if (cmp != 0) return cmp;
-         
-        return cmp;
+        cmp = Integer.compare(symbol, t.symbol); 
+        if (cmp != 0) return cmp;
+        return 0;
     }
+	
+	public String toString() {
+		return time + "<" + symbol + ">";
+	}
 
 }

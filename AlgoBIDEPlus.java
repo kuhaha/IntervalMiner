@@ -163,6 +163,8 @@ public class AlgoBIDEPlus{
 		sequenceDatabase.loadFile(inputFile);
 		sequenceCount = sequenceDatabase.size();
 		
+		sequenceDatabase.print();
+		
 		this.minsuppRelative = minsuppRelative;
 		// convert to a absolute minimum support
 		this.minsuppAbsolute = (int) Math.ceil(this.minsuppRelative * sequenceCount/100);
@@ -208,7 +210,7 @@ public class AlgoBIDEPlus{
 		// Load the sequence database
 		sequenceDatabase = new SequenceDatabase(); 
 		sequenceDatabase.loadFile(inputFile);
-//		sequenceDatabase.print();
+		sequenceDatabase.print();
 
 		this.minsuppRelative = 100*minsup/sequenceDatabase.size();
 		
@@ -290,7 +292,8 @@ public class AlgoBIDEPlus{
 				int token = sequence[j];
 				
 				// if it is an item
-				if(token > 0){
+				//if(token > 0){
+				if (Math.abs(token) > Constants.SYMBOL_FROM) {
 					// check if it is frequent
 					boolean isFrequent = mapSequenceID.get(token).size() >= minsuppAbsolute;
 					
@@ -1072,7 +1075,8 @@ public class AlgoBIDEPlus{
 			// for each token in this sequence (item, separator between itemsets (-1) or end of sequence (-2)
 			for(int token : sequence){
 				// if it is an item
-				if(token > 0){
+				//if(token > 0){
+				if(Math.abs(token) > Constants.SYMBOL_FROM){	
 					// get the set of sequence IDs for this item until now
 					List<Integer> sequenceIDs = mapSequenceID.get(token);
 					if(sequenceIDs == null){
@@ -1602,14 +1606,14 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 
 		
 		// we will check if there is a backward extension for each item in the current pattern
-loopi:	for(int i=0; i <= lastBufferPosition; i++){
+	loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			// As an optimization, we will use a variable to remember the highest support until now.
 			int highestSupportUntilNow = 0;
 			
 			// =======  IMPORTANT ==============
 			// skip if there is a -1 (an itemset separator)
 			if(patternBuffer[i] == -1){
-				continue;
+				continue loopi;
 			}
 			//===================================
 			
@@ -1902,7 +1906,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			// =======  IMPORTANT ==============
 			// skip if there is a -1 (an itemset separator)
 			if(patternBuffer[i] == -1){
-				continue;
+				continue loopi;
 			}
 			//===================================
 			

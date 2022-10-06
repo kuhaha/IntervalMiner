@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,6 +63,8 @@ public class SequenceDatabase {
 		try {
 			FileInputStream fin = new FileInputStream(new File(path));
 			myInput = new BufferedReader(new InputStreamReader(fin));
+			
+			
 		
 			// Read event sequences from file and transform each sequence to an itemset sequence in SPMF format.  
 			// A item is identified by symbol, an itemset is the set of items with same start point
@@ -88,7 +91,9 @@ public class SequenceDatabase {
 					// as well as convert STI representation to SPMF format of itemset representation
 					List<Integer> itemset_sequence = new ArrayList<Integer>();// current item sequence
 					
-					int itemset = 0;
+					List<Tiep> tieps = new ArrayList<Tiep>();
+					
+					//int itemset = 0;
 					for(int j=0; j < tokens.length; j++){
 						String[]sti = tokens[j].split(Constants.ITEM_DELIMITER);
 						int st = Integer.parseInt(sti[0]); //interval start
@@ -100,8 +105,10 @@ public class SequenceDatabase {
 						STI intv = new STI(st,fn,sym);
 						Tiep tiep_st = new Tiep(st, sym_num,intv);
 						Tiep tiep_fn = new Tiep(fn, -sym_num,intv);
+						tieps.add(tiep_st);
+						tieps.add(tiep_fn);
 						sti_sequence[j] = intv;
-	
+/*	
 						if (itemset != st ) { // a new itemset
 							if (itemset != 0) {
 								itemset_sequence.add(Constants.ITEMSET_END);
@@ -109,12 +116,28 @@ public class SequenceDatabase {
 							itemset = st;	
 						}
 						itemset_sequence.add(sym);	
+*/
 						itemOccurrenceCount++;
 					
 						// Inverted-index: symbol to its occurrences: sym -> seq -> pos
 						SequenceHandler.addOccurrence(sym, j);
 				
 					}
+					Collections.sort(tieps);
+					int itemset = 0;
+//					System.out.println("sid=" + this.sequences.size());
+					for (Tiep t : tieps) {
+//						System.out.print(t + ";");
+						if (itemset != t.time) {
+							if (itemset != 0) {
+								itemset_sequence.add(Constants.ITEMSET_END);
+							}
+							itemset = t.time;
+						}
+						itemset_sequence.add(t.symbol);
+					}
+//					System.out.println();
+					
 					itemset_sequence.add(Constants.SEQUENCE_END); // end of the sequence
 					// add the sequence to the list of sequences
 					this.sequences.add(itemset_sequence.stream().mapToInt(i->i).toArray());
@@ -122,6 +145,8 @@ public class SequenceDatabase {
 					SequenceHandler.addSequence(sti_sequence);
 				}
 			}
+
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -158,11 +183,11 @@ public class SequenceDatabase {
 		StringBuilder buffer = new StringBuilder();
 
 		// for each sequence
-		for (int i=0; i < sequences.size(); i++) { 
+		for (int i=0; i < this.sequences.size(); i++) { 
 			buffer.append(i + ":  ");
 			
 			// get that sequence
-			int[] sequence = sequences.get(i);			
+			int[] sequence = this.sequences.get(i);			
 			for(Integer token : sequence){
 				buffer.append(token.toString() + " ");
 			}

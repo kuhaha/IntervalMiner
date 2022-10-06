@@ -13,7 +13,7 @@ public class TestBIDEPlus {
 
 	public static void main(String [] arg) throws IOException{    
 		// Load a sequence database
-		String inputfile = fileToPath("datasets/toy.csv");
+		String inputfile = fileToPath("datasets/toy2.csv");
 		// Create an instance of the algorithm
 		AlgoBIDEPlus algo  = new AlgoBIDEPlus();
 		

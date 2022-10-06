@@ -7,7 +7,7 @@ import java.net.URL;
 public class TestUnit {
 
 	public static void main(String[] args) throws IOException{ 
-		String inputfile = fileToPath("datasets/toy.csv");
+		String inputfile = fileToPath("datasets/toy3.csv");
 		SequenceDatabase sequenceDatabase = new SequenceDatabase(); 
 		sequenceDatabase.loadFile(inputfile);
 		int sequenceCount = sequenceDatabase.size();
