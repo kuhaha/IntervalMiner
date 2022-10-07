@@ -17,10 +17,10 @@ public class Constants {
 	public static final String EVENT_DELIMITER = ";";// delimiter between event intervals
 	
 	// transformed database
-	public static final int SYMBOL_FROM = 10; // least symbol number, symbols are numbered from 
-	public static final int ITEMSET_END = -1; // indicator to end of an itemset 
-	public static final int SEQUENCE_END = -2; // indicator to end of a sequence
-	public static final int MEET_AT = -3;	// indicator to an meet itemset
+	public static final int SYMBOL_FROM = 10; // renumber symbols, reserving separator numbers, such as -1,-2,-3, -9 
+	public static final int ITEMSET_END = -1; // separator indicating the end of an itemset 
+	public static final int SEQUENCE_END = -2; //separator indicating the end of a sequence
+	public static final int MEET_AT = -3;	// indicating an meet itemset
 	
 	//Allen's temporal relations
 	public static final char ALLEN_BEFORE = '<';

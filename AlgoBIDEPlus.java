@@ -293,7 +293,7 @@ public class AlgoBIDEPlus{
 				
 				// if it is an item
 				//if(token > 0){
-				if (Math.abs(token) > Constants.SYMBOL_FROM) {
+				if (Math.abs(token) > Constants.SYMBOL_FROM) { // it is an item ether start or finish
 					// check if it is frequent
 					boolean isFrequent = mapSequenceID.get(token).size() >= minsuppAbsolute;
 					
@@ -304,12 +304,12 @@ public class AlgoBIDEPlus{
 						// increment the current position
 						currentPosition++;
 					}	
-				}else if(token == -2){
+				}else if(token == Constants.SEQUENCE_END){
 					// If it is the end of the sequence,
 					// If the sequence is not empty after having removed the infrequent items
 					if(currentPosition >0){
 						// copy the item to the end of sequence -2 at the current position
-						sequence[currentPosition] = -2;
+						sequence[currentPosition] = Constants.SEQUENCE_END;
 						
 						// now replace the previous sequence in the database with the new sequence where items have been removed
 						int[] newSequence = new int[currentPosition+1];
@@ -565,7 +565,8 @@ public class AlgoBIDEPlus{
 				int token = sequence[j];
 				
 				// if it is an item
-				if(token > 0){
+				//if(token > 0){				
+				if (token > Constants.SYMBOL_FROM){//it is a start item 
 					// Check if that item is frequent
 					boolean isFrequent = mapSequenceID.get(token).size() >= minsuppAbsolute;
 					
@@ -577,8 +578,14 @@ public class AlgoBIDEPlus{
 						currentPosition++;
 						// increment the number of items in the current itemset
 						currentItemsetItemCount++;
-					}	
-				}else if(token == -1){
+					}
+				}else if (token < -Constants.SYMBOL_FROM) {// it is a finish item
+					// check if that item has a matching start item 
+					
+				
+				}else if(token == Constants.MEET_AT){	//the next itemset is a meet one 
+					
+				}else if(token == Constants.ITEMSET_END){
 					// If we have reached the end of an itemset (-1 is the itemset separator)
 					// If this itemset is not empty after having removed the infrequent items.
 					if(currentItemsetItemCount >0){
@@ -589,7 +596,7 @@ public class AlgoBIDEPlus{
 						// reset the number of items in the current itemset for the next itemset
 						currentItemsetItemCount = 0;
 					}
-				}else if(token == -2){
+				}else if(token == Constants.SEQUENCE_END){
 					// If we have reached the end of the current sequence (-2 is the symbol indicating the end of a sequence),
 					// and if the sequence is not empty after having removed the infrequent items
 					if(currentPosition >0){
@@ -1097,7 +1104,7 @@ public class AlgoBIDEPlus{
 					if(itemCountInCurrentItemset > 1){
 						containsItemsetsWithMultipleItems = true;
 					}
-				}else if(token == -1){
+				}else if(token == Constants.ITEMSET_END || token == Constants.MEET_AT){
 					// if it is the end of an itemset, reste the item count per itemset.
 					itemCountInCurrentItemset = 0;
 				}
@@ -1123,13 +1130,13 @@ loopSeq:for(int sequenceID : sequenceIDs){
 			int[] sequence = sequenceDatabase.getSequences().get(sequenceID);
 			
 			// for each token in this sequence (item  or end of sequence (-2)
-			for(int j=0; sequence[j] != -2; j++){
+			for(int j=0; sequence[j] != Constants.SEQUENCE_END; j++){
 				int token = sequence[j];
 				
 				// if it is the item that we want to use for projection
 				if(token == item){
 					// if it is not the end of the sequence
-					if(sequence[j+1] != -2){
+					if(sequence[j+1] != Constants.SEQUENCE_END){
 						// Create a pseudo-sequence by cutting that sequence at position j, so that items from
 						// position j+1 and after remains in the sequence
 						PseudoSequence pseudoSequence = new PseudoSequence(sequenceID, j+1);
@@ -1161,13 +1168,13 @@ loopSeq:for(int sequenceID : sequenceIDs){
 			int[] sequence = sequenceDatabase.getSequences().get(sequenceID);
 			
 			// for each token in this sequence (item, separator between itemsets (-1) or end of sequence (-2)
-			for(int j=0; sequence[j] != -2; j++){
+			for(int j=0; sequence[j] != Constants.SEQUENCE_END; j++){
 				int token = sequence[j];
 				
 				// if it is the item that we want to use for projection
 				if(token == item){
 					// if it is not the end of the sequence
-					boolean isEndOfSequence = sequence[j+1] == -1 && sequence[j+2] == -2;
+					boolean isEndOfSequence = sequence[j+1] == Constants.ITEMSET_END && sequence[j+2] == Constants.SEQUENCE_END;
 					if(isEndOfSequence == false){
 						// Create a pseudo-sequence by cutting that sequence at position j, so that items from
 						// position j+1 and after remains in the sequence
@@ -1296,7 +1303,7 @@ loopSeq:	for(int k =0; k < projectedDatabase.size(); k++){
 				alreadySeen.clear();
 				
 				// for each item when reading the sequence forward
-				for(int j=0; sequence[j] != -2; j++){
+				for(int j=0; sequence[j] != Constants.SEQUENCE_END; j++){
 					int token = sequence[j];
 					// if it is an item
 					if(token > 0){
@@ -1415,7 +1422,8 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				for(int j=sequence.length-1; j >= posAfterFirstInstance; j--){
 					int token = sequence[j];
 					// if it is an item
-					if(token > 0){
+					//if(token > 0){
+					if(Math.abs(token) > Constants.SYMBOL_FROM){
 						// if we have found the item that we are looking for
 						if(currentPositionToMatch >= i && token == patternBuffer[currentPositionToMatch]){
 							// found an item, we will search for the next item
@@ -1554,7 +1562,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				// we append the item to the current pattern to create a new pattern
 				int newBuferPosition = lastBufferPosition;
 				newBuferPosition++;
-				patternBuffer[newBuferPosition] = -1;
+				patternBuffer[newBuferPosition] = Constants.ITEMSET_END;
 				newBuferPosition++;
 				patternBuffer[newBuferPosition] = pair.item;
 
@@ -1612,7 +1620,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			
 			// =======  IMPORTANT ==============
 			// skip if there is a -1 (an itemset separator)
-			if(patternBuffer[i] == -1){
+			if(patternBuffer[i] == Constants.ITEMSET_END){
 				continue loopi;
 			}
 			//===================================
@@ -1658,7 +1666,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 						// IF it is the end of an itemset
 						if(token == -1){
 							// IF MATCHED THE WHOLE ITEMSET
-							if(patternBuffer[currentPositionToMatch] == -1){ 
+							if(patternBuffer[currentPositionToMatch] == Constants.ITEMSET_END){ 
 								// we save the following information in case we cannot match the whole itemset
 								positionToMatchAtBeginingOfCurrentItemset =  currentPositionToMatch;  // save
 							}else{
@@ -1676,7 +1684,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 								posItemFirst = j+1;
 								break;
 							}
-							if(currentPositionToMatch == i-2 && patternBuffer[currentPositionToMatch+1] == -1){
+							if(currentPositionToMatch == i-2 && patternBuffer[currentPositionToMatch+1] == Constants.ITEMSET_END){
 								posItemFirst = j+1;
 								break;
 							}
@@ -1702,7 +1710,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				// IF it is the end of an itemset
 				if(token == -1){
 					// IF MATCHED THE WHOLE ITEMSET
-					if(patternBuffer[currentPositionToMatch] == -1){ 
+					if(patternBuffer[currentPositionToMatch] == Constants.ITEMSET_END){ 
 						// we save the following information in case we cannot match the whole itemset
 						positionToMatchAtBeginingOfCurrentItemset =  currentPositionToMatch;  // save
 					}else{
@@ -1719,7 +1727,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 						// save the position of the previous item
 						posItemLast = j-1;
 						// find the position of the begining of that itemset containing that item
-						while(j>=0 && sequence[j] != -1){
+						while(j>=0 && sequence[j] != Constants.ITEMSET_END){
 							j--;
 						}
 						posLastItemset = j+1;
@@ -1733,8 +1741,8 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			// NEXT WE WILL UPDATE THE SUPPORT OF ITEMS in the  [posItemFirst, posItemLast] interval
 			
 			// variable to remember that we start in the itemset for ei-1
-			boolean firstItemstIsCut = i!=0 && sequence[posItemFirst] != -1;
-			boolean lastItemsetIsCut = posItemLast >= 0 && sequence[posItemLast] != -1;  // NEW
+			boolean firstItemstIsCut = i!=0 && sequence[posItemFirst] != Constants.ITEMSET_END;
+			boolean lastItemsetIsCut = posItemLast >= 0 && sequence[posItemLast] != Constants.ITEMSET_END;  // NEW
 			boolean inFirstPostfix = firstItemstIsCut;
 			if(lastItemsetIsCut){
 				// ok if we are in an itemset that is cut, we still need to check if the postfix of this itemset
@@ -1745,7 +1753,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				for(int j = posItemFirst; j <= posItemLast ; j++){
 					if(sequence[posItemFirst] == sequence[posToMatch]){
 						posToMatch++;
-						if(sequence[posToMatch] == -1 ){
+						if(sequence[posToMatch] == Constants.ITEMSET_END ){
 							inFirstPostfix = true;
 							break;
 						}
@@ -1770,7 +1778,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					postfixItemToMatch = posItemsetFirst;
 					
 					// INSERTED TO FIX BUG: 2016-03-13
-					if(patternBuffer[postfixItemToMatch] == -1){
+					if(patternBuffer[postfixItemToMatch] == Constants.ITEMSET_END){
 						postfixItemToMatch++;
 					}
 				} 
@@ -1780,7 +1788,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					if(!inAnotherPostfix && i != 0 &&  patternBuffer[postfixItemToMatch] == token){
 						postfixItemToMatch--;
 						// if we matched the full itemset containing ei-1, the next items in the same itemset may be appended as postfix
-						if(postfixItemToMatch <0 || patternBuffer[postfixItemToMatch] == -1){
+						if(postfixItemToMatch <0 || patternBuffer[postfixItemToMatch] == Constants.ITEMSET_END){
 							// IMPORTANT
 							inAnotherPostfix = true;
 							if(lastItemsetIsCut){
@@ -1793,7 +1801,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 								for(int w = j; w <= posItemLast ; w++){
 									if(sequence[w] == sequence[posToMatch]){
 										posToMatch++;
-										if(sequence[posToMatch] == -1 ){
+										if(sequence[posToMatch] == Constants.ITEMSET_END ){
 											// YES !!!!!!!!
 											inAnotherPostfix = true;
 											break;
@@ -1905,7 +1913,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			
 			// =======  IMPORTANT ==============
 			// skip if there is a -1 (an itemset separator)
-			if(patternBuffer[i] == -1){
+			if(patternBuffer[i] == Constants.ITEMSET_END){
 				continue loopi;
 			}
 			//===================================
@@ -1938,10 +1946,10 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					for(int j = 0; ; j++){
 						int token = sequence[j];
 						
-						// IF it is the end of an itemset
-						if(token == -1){
+						// If it is the end of an itemset
+						if(token == Constants.ITEMSET_END){
 							// IF MATCHED THE WHOLE ITEMSET
-							if(patternBuffer[currentPositionToMatch] == -1){ 
+							if(patternBuffer[currentPositionToMatch] == Constants.ITEMSET_END){ 
 								// we save the following information in case we cannot match the whole itemset
 								positionToMatchAtBeginingOfCurrentItemset =  currentPositionToMatch;  // save
 							}else{
@@ -1956,12 +1964,12 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 										
 							// check if we have completed matching the whole part e1, e2... ei-1
 							if(currentPositionToMatch == i-1){
-								if(patternBuffer[currentPositionToMatch] != -1){
+								if(patternBuffer[currentPositionToMatch] != Constants.ITEMSET_END){
 									posItemFirst = j+1;
 								}
 								break;
 							}
-							if(token != -1){
+							if(token != Constants.ITEMSET_END){
 								posItemFirst = j+1;
 							}
 							currentPositionToMatch++;
@@ -2006,7 +2014,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 							break;
 						}
 						currentPositionToMatch++;
-						if(patternBuffer[currentPositionToMatch] == -1){
+						if(patternBuffer[currentPositionToMatch] == Constants.ITEMSET_END){
 							//posItemLast = j-1;
 							break;
 						}
@@ -2027,8 +2035,8 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			}
 			
 			
-			boolean firstItemstIsCut = i!=0 && sequence[posItemFirst] != -1;
-			boolean lastItemsetIsCut = posItemLast >= 0 && sequence[posItemLast] != -1;  // NEW
+			boolean firstItemstIsCut = i!=0 && sequence[posItemFirst] != Constants.ITEMSET_END;
+			boolean lastItemsetIsCut = posItemLast >= 0 && sequence[posItemLast] != Constants.ITEMSET_END;  // NEW
 			boolean inFirstPostfix = firstItemstIsCut;
 			if(lastItemsetIsCut){
 				// ok if we are in an itemset that is cut, we still need to check if the postfix of this itemset
@@ -2039,7 +2047,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				for(int j = posItemFirst; j <= posItemLast ; j++){
 					if(sequence[posItemFirst] == sequence[posToMatch]){
 						posToMatch++;
-						if(sequence[posToMatch] == -1 ){
+						if(sequence[posToMatch] == Constants.ITEMSET_END ){
 							inFirstPostfix = true;
 							break;
 						}
@@ -2057,7 +2065,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			for(int j = posItemFirst; j <= posItemLast ; j++){
 				int token = sequence[j];
 				
-				if(token == -1){
+				if(token == Constants.ITEMSET_END){
 					inFirstPostfix = false;
 					inAnotherPostfix = false;
 					// we will try to match the last itemset containing ei-1 to determine if the current itemset is a postfix
@@ -2069,7 +2077,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					if(!inAnotherPostfix && i != 0 &&  patternBuffer[postfixItemToMatch] == token){
 						postfixItemToMatch--;
 						// if we matched the full itemset containing ei-1, the next items in the same itemset may be appended as postfix
-						if(postfixItemToMatch <0 || patternBuffer[postfixItemToMatch] == -1){
+						if(postfixItemToMatch <0 || patternBuffer[postfixItemToMatch] == Constants.ITEMSET_END){
 							
 							// IMPORTANT
 							inAnotherPostfix = true;
@@ -2083,7 +2091,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 								for(int w = j; w <= posItemLast ; w++){
 									if(sequence[w] == sequence[posToMatch]){
 										posToMatch++;
-										if(sequence[posToMatch] == -1 ){
+										if(sequence[posToMatch] == Constants.ITEMSET_END ){
 											// YES !!!!!!!!
 											inAnotherPostfix = true;
 											break;
@@ -2198,11 +2206,12 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			int[] sequence = sequenceDatabase.getSequences().get(sequenceID);
 			
 			// for each token in this sequence 
-			for(int i = pseudoSequence.indexFirstItem;  sequence[i] != -2 ; i++){
+			for(int i = pseudoSequence.indexFirstItem;  sequence[i] != Constants.SEQUENCE_END ; i++){
 				int token = sequence[i];
 				
 				// if it is an item
-				if(token > 0){
+				//if(token > 0){
+				if (Math.abs(token)>Constants.SYMBOL_FROM) {
 					// get the pair object stored in the map if there is one already
 					List<PseudoSequence> listSequences = mapItemsPseudoSequences.get(token);
 					// if there is no pair object yet
@@ -2283,7 +2292,8 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				int token = sequence[i];
 				
 				// if it is an item
-				if(token > 0){
+				//if(token > 0){
+				if (Math.abs(token)>Constants.SYMBOL_FROM) {
 					
 					// create the pair corresponding to this item
 					Pair pair = new Pair(token);   
@@ -2355,7 +2365,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 						}
 					}
 
-				}else if(token == -1){
+				}else if(token == Constants.ITEMSET_END){
 					isFirstItemset = false;
 					currentItemsetIsPostfix = false;
 					positionToBeMatched = firstPositionOfLastItemsetInBuffer;

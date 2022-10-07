@@ -81,7 +81,7 @@ public class SequenceDatabase {
 						&& !thisLine.matches(Constants.HEADING1)
 						&& !thisLine.matches(Constants.HEADING2)
 						&& !thisLine.matches(Constants.ISENTITY)) {
-					
+									
 					// split this line according to event delimiter and process the line
 					String[] tokens = thisLine.split(Constants.EVENT_DELIMITER);
 
@@ -100,31 +100,23 @@ public class SequenceDatabase {
 						int fn = Integer.parseInt(sti[1]); //interval finish
 						int sym = Integer.parseInt(sti[2]);//interval state symbol
 
-						int sym_num = Constants.SYMBOL_FROM + sym;
+						int sym_code = Constants.SYMBOL_FROM + sym;
 						
 						STI intv = new STI(st,fn,sym);
-						Tiep tiep_st = new Tiep(st, sym_num,intv);
-						Tiep tiep_fn = new Tiep(fn, -sym_num,intv);
+						Tiep tiep_st = new Tiep(st, sym_code,intv);
+						Tiep tiep_fn = new Tiep(fn, -sym_code,intv);
 						tieps.add(tiep_st);
 						tieps.add(tiep_fn);
 						sti_sequence[j] = intv;
-/*	
-						if (itemset != st ) { // a new itemset
-							if (itemset != 0) {
-								itemset_sequence.add(Constants.ITEMSET_END);
-							}
-							itemset = st;	
-						}
-						itemset_sequence.add(sym);	
-*/
-						itemOccurrenceCount++;
-					
+
+						itemOccurrenceCount++;				
 						// Inverted-index: symbol to its occurrences: sym -> seq -> pos
-						SequenceHandler.addOccurrence(sym, j);
+						SequenceHandler.addOccurrence(sym_code, j);
 				
 					}
 					Collections.sort(tieps);
 					int itemset = 0;
+					int last_finish = 0;
 //					System.out.println("sid=" + this.sequences.size());
 					for (Tiep t : tieps) {
 //						System.out.print(t + ";");
@@ -133,6 +125,14 @@ public class SequenceDatabase {
 								itemset_sequence.add(Constants.ITEMSET_END);
 							}
 							itemset = t.time;
+						}
+						if (t.isStart() && t.time==last_finish) {
+//							System.out.println("meet at "+t.time+" " + t.symbol);
+							itemset_sequence.add(Constants.MEET_AT);
+						}
+						if (t.isFinish() && t.time>last_finish) {
+							last_finish = t.time;
+//							System.out.println(":"+last_finish);
 						}
 						itemset_sequence.add(t.symbol);
 					}
