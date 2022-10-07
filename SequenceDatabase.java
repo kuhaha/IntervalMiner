@@ -93,14 +93,13 @@ public class SequenceDatabase {
 					
 					List<Tiep> tieps = new ArrayList<Tiep>();
 					
-					//int itemset = 0;
 					for(int j=0; j < tokens.length; j++){
 						String[]sti = tokens[j].split(Constants.ITEM_DELIMITER);
 						int st = Integer.parseInt(sti[0]); //interval start
 						int fn = Integer.parseInt(sti[1]); //interval finish
 						int sym = Integer.parseInt(sti[2]);//interval state symbol
 
-						int sym_code = Constants.SYMBOL_FROM + sym;
+						int sym_code = Constants.SYMBOL_START + sym;
 						
 						STI intv = new STI(st,fn,sym);
 						Tiep tiep_st = new Tiep(st, sym_code,intv);
@@ -117,9 +116,7 @@ public class SequenceDatabase {
 					Collections.sort(tieps);
 					int itemset = 0;
 					int last_finish = 0;
-//					System.out.println("sid=" + this.sequences.size());
 					for (Tiep t : tieps) {
-//						System.out.print(t + ";");
 						if (itemset != t.time) {
 							if (itemset != 0) {
 								itemset_sequence.add(Constants.ITEMSET_END);
@@ -127,16 +124,13 @@ public class SequenceDatabase {
 							itemset = t.time;
 						}
 						if (t.isStart() && t.time==last_finish) {
-//							System.out.println("meet at "+t.time+" " + t.symbol);
 							itemset_sequence.add(Constants.MEET_AT);
 						}
 						if (t.isFinish() && t.time>last_finish) {
 							last_finish = t.time;
-//							System.out.println(":"+last_finish);
 						}
 						itemset_sequence.add(t.symbol);
 					}
-//					System.out.println();
 					
 					itemset_sequence.add(Constants.SEQUENCE_END); // end of the sequence
 					// add the sequence to the list of sequences

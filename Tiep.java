@@ -17,10 +17,10 @@ public class Tiep implements Comparable<Tiep>{
 		
 	}
 	public boolean isStart() {
-		return symbol > Constants.SYMBOL_FROM;
+		return symbol > Constants.SYMBOL_START;
 	}
 	public boolean isFinish() {
-		return symbol < - Constants.SYMBOL_FROM;
+		return symbol < - Constants.SYMBOL_START;
 	}
 	
 	public int symbol() {
