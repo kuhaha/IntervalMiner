@@ -142,6 +142,15 @@ public class AlgoBIDEPlus{
 //		// relation, overlappping, start, finish, meet
 //		return true;
 //	}
+	
+	private boolean isItem(int t) {
+		return Math.abs(t) > Constants.SYMBOL_START;
+	}
+	
+	private int toItem(int t) {
+		return Math.abs(t);
+	}
+	
 	/**
 	 * Run the algorithm
 	 * @param inputFile : a sequence database
@@ -164,6 +173,7 @@ public class AlgoBIDEPlus{
 		sequenceCount = sequenceDatabase.size();
 		
 		if (Constants.DEBUG){
+			SequenceHandler.print();
 			sequenceDatabase.print();
 		}
 		
@@ -198,7 +208,7 @@ public class AlgoBIDEPlus{
 	 * @return return the result, if saved into memory, otherwise null if the result is saved to an output file
 	 * @throws IOException  exception if error while writing the file
 	 */
-	public SequentialPatterns runAlgorithm(String inputFile, String outputFilePath, int minsup) throws IOException {
+	public SequentialPatterns runAlgorithm(String inputFile, int minsup, String outputFilePath) throws IOException {
 		// initialize variables for statistics
 		patternCount =0;
 		MemoryLogger.getInstance().reset();
@@ -257,15 +267,17 @@ public class AlgoBIDEPlus{
 		// We have to scan the database to find all frequent sequential patterns containing 1 item.
 		// We note the sequences where each item appears.
 		Map<Integer, List<Integer>> mapSequenceID = findSequencesContainingItems();
-
+	
 		//====== Remove infrequent items from the database, and then explore each projected database ================
 		// This step is performed differently depending on whether the database contains multiple items
 		// per itemset, or not. This allows to do additional optimizations.
 		// CASE 1: the database has multiple items per itemset
 		if(containsItemsetsWithMultipleItems){
+			if (Constants.DEBUG) System.out.println("multi"); 
 			bideWithMultipleItems(mapSequenceID);	
 		}else{
 			// CASE 2: the database does not have multiple items per itemset.
+			if (Constants.DEBUG) System.out.println("single"); 
 			bideWithSingleItems(mapSequenceID);	
 		}
 	}
@@ -294,7 +306,7 @@ public class AlgoBIDEPlus{
 				int token = sequence[j];
 				
 				// if it is a start item
-				if (token > Constants.SYMBOL_START) {
+				if (isItem(token) ) {//###
 					// check if it is frequent
 					boolean isFrequent = mapSequenceID.get(token).size() >= minsuppAbsolute;
 					
@@ -324,6 +336,9 @@ public class AlgoBIDEPlus{
 					}
 				}
 			}
+		}
+		if (Constants.DEBUG) {
+			sequenceDatabase.print();
 		}
 		
 		//============= WE EXPLORE EACH PROJECTED DATABASE  ================================
@@ -407,7 +422,7 @@ public class AlgoBIDEPlus{
 				int token = sequence[j];
 				
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){
+				if(token > Constants.SYMBOL_START){//###
 					// if we have found the item, we stop because we are looking for what
 					// appear before the first occurrence of that item
 					if(token == item){
@@ -489,7 +504,7 @@ public class AlgoBIDEPlus{
 			for(int j = sequence.length-1; j >= 0; j--){
 				int token = sequence[j];
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){	
+				if(token > Constants.SYMBOL_START){//###
 					// if we have found the item, we remember that
 					// because everything before can be a backward extension
 					if(token == item){
@@ -566,7 +581,7 @@ public class AlgoBIDEPlus{
 				int token = sequence[j];
 				
 				// if it is a start item
-				if (token > Constants.SYMBOL_START){
+				if (isItem(token)){ //###
 					// Check if that item is frequent
 					boolean isFrequent = mapSequenceID.get(token).size() >= minsuppAbsolute;
 					
@@ -618,7 +633,9 @@ public class AlgoBIDEPlus{
 				}
 			}
 		}
-		
+		if (Constants.DEBUG) {
+			sequenceDatabase.print();
+		}
 		//============= WE EXPLORE EACH PROJECTED DATABASE  ================================
 		// For each  item
 		for(Entry<Integer, List<Integer>> entry : mapSequenceID.entrySet()){
@@ -721,7 +738,7 @@ public class AlgoBIDEPlus{
 				}
 				
 				// if the token is a start item
-				if(token > Constants.SYMBOL_START){	
+				if(token > Constants.SYMBOL_START){	//###
 
 					// check the different cases
 					boolean couldBeExtension = false;
@@ -859,7 +876,7 @@ public class AlgoBIDEPlus{
 				int token = sequence[i];
 				
 				// if the token is a start item
-				if(token > Constants.SYMBOL_START){	
+				if(token > Constants.SYMBOL_START){//###
 					// if the current item would NOT be in the same itemset as the pattern
 					if(i < posItemset){
 						// If we did not see this item yet in this sequence
@@ -1082,7 +1099,7 @@ public class AlgoBIDEPlus{
 			// for each token in this sequence (item, separator between itemsets (-1) or end of sequence (-2)
 			for(int token : sequence){
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){	
+				if(isItem(token)){//###
 					// get the set of sequence IDs for this item until now
 					List<Integer> sequenceIDs = mapSequenceID.get(token);
 					if(sequenceIDs == null){
@@ -1305,7 +1322,7 @@ loopSeq:	for(int k =0; k < projectedDatabase.size(); k++){
 				for(int j=0; sequence[j] != Constants.SEQUENCE_END; j++){
 					int token = sequence[j];
 					// if it is a start item
-					if(token > Constants.SYMBOL_START){	
+					if(token > Constants.SYMBOL_START){//###
 						// if we have found the item that we are looking
 						if(token == patternBuffer[currentPositionToMatch]){
 							// if it was the last item that we were looking for, we stop
@@ -1393,7 +1410,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					for(int j=0; j < sequence.length; j++){
 						int token = sequence[j];
 						// if it is a start item
-						if (token > Constants.SYMBOL_START) {
+						if (token > Constants.SYMBOL_START) {//###
 						// if we have found the item that we are looking for
 							if(token == patternBuffer[currentPositionToMatch1]){
 								// if it was the last item that we were looking for, we stop
@@ -1421,7 +1438,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				for(int j=sequence.length-1; j >= posAfterFirstInstance; j--){
 					int token = sequence[j];
 					// if it is a start item
-					if(token > Constants.SYMBOL_START){ // it is a start item
+					if(token > Constants.SYMBOL_START){ //###
 						// if we have found the item that we are looking for
 						if(currentPositionToMatch >= i && token == patternBuffer[currentPositionToMatch]){
 							// found an item, we will search for the next item
@@ -1781,7 +1798,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					}
 				} 
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){ 
+				if(token > Constants.SYMBOL_START){ //###
 					boolean justMatched = false;
 					// if we matched the full itemset containing ei-1
 					if(!inAnotherPostfix && i != 0 &&  patternBuffer[postfixItemToMatch] == token){
@@ -1999,7 +2016,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					posItemLast = -999;
 				}
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){
+				if(token > Constants.SYMBOL_START){//###
 					// If it is an item that we look to match
 					if(token == patternBuffer[currentPositionToMatch]){
 						// we will save the  position of the first item that match in this itemset
@@ -2071,7 +2088,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					postfixItemToMatch = posItemsetFirst;
 				} 
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){
+				if(token > Constants.SYMBOL_START){//###
 					boolean justMatched = false;
 					// if we matched the full itemset containing ei-1
 					if(!inAnotherPostfix && i != 0 &&  patternBuffer[postfixItemToMatch] == token){
@@ -2210,7 +2227,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				int token = sequence[i];
 				
 				// if it is a start item
-				if (token > Constants.SYMBOL_START) { // it is a start item
+				if (token > Constants.SYMBOL_START) { //###
 					// get the pair object stored in the map if there is one already
 					List<PseudoSequence> listSequences = mapItemsPseudoSequences.get(token);
 					// if there is no pair object yet
@@ -2291,7 +2308,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				int token = sequence[i];
 				
 				// if it is a start item
-				if (token > Constants.SYMBOL_START) {
+				if (token > Constants.SYMBOL_START) {//###
 					// create the pair corresponding to this item
 					Pair pair = new Pair(token);   
 					// get the pair object store in the map if there is one already
