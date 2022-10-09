@@ -23,7 +23,7 @@ public class Constants {
 	public static final int SYMBOL_START = 10; // renumber symbols, reserving separator numbers, such as -1,-2,-3, -9 
 	public static final int ITEMSET_END = -1; // separator indicating the end of an itemset 
 	public static final int SEQUENCE_END = -2; //separator indicating the end of a sequence
-	public static final int MEET_AT = -6;	// indicating an meet itemset
+	public static final int MEET_AT = -1;	// indicating an meet itemset
 	
 	//Allen's temporal relations
 	public static final char ALLEN_BEFORE = '<';

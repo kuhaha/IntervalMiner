@@ -43,7 +43,6 @@ public class SequentialPattern implements Comparable<SequentialPattern>{
 	// additional support count for the sequential pattern
 	private int additionalSupport = 0;
 
-	
 	/**
 	 * Set the set of IDs of sequence containing this prefix
 	 * @param a set of integer containing sequence IDs

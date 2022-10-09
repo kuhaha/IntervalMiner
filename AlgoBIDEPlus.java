@@ -146,9 +146,54 @@ public class AlgoBIDEPlus{
 	private boolean isItem(int t) {
 		return Math.abs(t) > Constants.SYMBOL_START;
 	}
+	private boolean isStItem(int t) {
+		return t > Constants.SYMBOL_START;
+	}
+	private boolean isFnItem(int t) {
+		return t < -Constants.SYMBOL_START;
+	}
 	
-	private int toItem(int t) {
-		return Math.abs(t);
+	private Map<Integer,Integer> patternMatch = new HashMap<Integer,Integer>();
+	
+	private void addMatch(int item) {
+//		if (Constants.DEBUG) {
+//			if (isStItem(item) &&  patternMatch.containsKey(item)) {
+//				(new Throwable()).printStackTrace();
+//			}
+//		}
+		int key = Math.abs(item);
+		int match = patternMatch.containsKey(key) ? patternMatch.get(key) + item : item;
+		patternMatch.put(key, match);
+		if (Constants.DEBUG) {
+			printMatch();
+		}
+	}
+	// Check if a finish item has a mathcing start item
+	private boolean validExt(int item) {
+		if (item > Constants.SYMBOL_START) {
+			return true;
+		}
+		if (-item > Constants.SYMBOL_START && patternMatch.containsKey(-item)) { //finish item
+			return patternMatch.get(-item) + item >= 0;
+		}
+		return false;
+	}	
+	private void printMatch() {
+		System.out.print("DEBUG: Check Matches->");
+		for (Map.Entry<Integer,Integer> entry: patternMatch.entrySet()) {
+			System.out.print(entry.getKey() + ":" + entry.getValue() + " ");
+		}
+		System.out.println();
+	}
+	// Check if current pattern is valid -- all items occur in pair
+	private boolean validPattern(int lastPos) {
+		for (int i = 0; i<=lastPos; i++) {
+			int item = Math.abs(patternBuffer[i]);
+			Integer e =patternMatch.get(item);
+			if (e == null || e.intValue() != 0) 
+				return false;
+		}
+		return true;
 	}
 	
 	/**
@@ -273,11 +318,11 @@ public class AlgoBIDEPlus{
 		// per itemset, or not. This allows to do additional optimizations.
 		// CASE 1: the database has multiple items per itemset
 		if(containsItemsetsWithMultipleItems){
-			if (Constants.DEBUG) System.out.println("multi"); 
+			if (Constants.DEBUG) System.out.println("multi-item itemsets"); 
 			bideWithMultipleItems(mapSequenceID);	
 		}else{
 			// CASE 2: the database does not have multiple items per itemset.
-			if (Constants.DEBUG) System.out.println("single"); 
+			if (Constants.DEBUG) System.out.println("single-item itemsets"); 
 			bideWithSingleItems(mapSequenceID);	
 		}
 	}
@@ -342,14 +387,13 @@ public class AlgoBIDEPlus{
 		}
 		
 		//============= WE EXPLORE EACH PROJECTED DATABASE  ================================
-		// For each  item
+		// For each item
 		for(Entry<Integer, List<Integer>> entry : mapSequenceID.entrySet()){
 			// Get its support
 			int support = entry.getValue().size();
+			int item = entry.getKey();
 			// if the item is frequent  (has a support >= minsup)
-			if(support >= minsuppAbsolute){ 
-				int item = entry.getKey();
-
+			if(validExt(item) && support >= minsuppAbsolute){ 
 				// check if the current item pass the backscan pruning method of the BIDE+ algorithm
 				boolean passBackscanPruning = checkBackscanPruningSingleItemsFirstTime(item, entry.getValue());
 				
@@ -358,6 +402,8 @@ public class AlgoBIDEPlus{
 					
 					// Create the sequential pattern with this item by copying the item in the buffer for the current patern
 					patternBuffer[0] = item;
+					patternMatch.clear();
+					addMatch(item);
 
 					// build the projected database for that item
 					List<PseudoSequence> projectedDatabase  = buildProjectedDatabaseSingleItems(item, entry.getValue());
@@ -422,7 +468,7 @@ public class AlgoBIDEPlus{
 				int token = sequence[j];
 				
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){//###
+				if(isItem(token)){//###
 					// if we have found the item, we stop because we are looking for what
 					// appear before the first occurrence of that item
 					if(token == item){
@@ -504,7 +550,7 @@ public class AlgoBIDEPlus{
 			for(int j = sequence.length-1; j >= 0; j--){
 				int token = sequence[j];
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){//###
+				if(isItem(token)){//###
 					// if we have found the item, we remember that
 					// because everything before can be a backward extension
 					if(token == item){
@@ -594,12 +640,6 @@ public class AlgoBIDEPlus{
 						// increment the number of items in the current itemset
 						currentItemsetItemCount++;
 					}
-				}else if (token < -Constants.SYMBOL_START) {// it is a finish item
-					// check if that item has a matching start item 
-					
-				
-				}else if(token == Constants.MEET_AT){	//the next itemset is a meet one 
-					
 				}else if(token == Constants.ITEMSET_END){
 					// If we have reached the end of an itemset (-1 is the itemset separator)
 					// If this itemset is not empty after having removed the infrequent items.
@@ -641,10 +681,9 @@ public class AlgoBIDEPlus{
 		for(Entry<Integer, List<Integer>> entry : mapSequenceID.entrySet()){
 			// Get its support
 			int support = entry.getValue().size();
+			int item = entry.getKey();
 			// if the item is frequent  (has a support >= minsup)
-			if(support >= minsuppAbsolute){ 
-				int item = entry.getKey();
-				
+			if(isStItem(item) && support >= minsuppAbsolute){ 				
 				// Check the backscan pruning condition for this item to determine if we should try to explore
 				// larger pattern by extending this item
 				boolean passBackscanPruning = checkBackscanPruningMultipleItemsFirstTime(item, entry.getValue());
@@ -654,6 +693,8 @@ public class AlgoBIDEPlus{
 
 					// Create the current pattern by copying the item in the buffer
 					patternBuffer[0] = item;
+					patternMatch.clear();
+					addMatch(item);
 
 					// build the projected database for that item
 					List<PseudoSequence> projectedDatabase  = buildProjectedDatabaseFirstTimeMultipleItems(item, entry.getValue());
@@ -738,7 +779,7 @@ public class AlgoBIDEPlus{
 				}
 				
 				// if the token is a start item
-				if(token > Constants.SYMBOL_START){	//###
+				if(isItem(token)){	//###
 
 					// check the different cases
 					boolean couldBeExtension = false;
@@ -876,7 +917,7 @@ public class AlgoBIDEPlus{
 				int token = sequence[i];
 				
 				// if the token is a start item
-				if(token > Constants.SYMBOL_START){//###
+				if(isItem(token)){//###
 					// if the current item would NOT be in the same itemset as the pattern
 					if(i < posItemset){
 						// If we did not see this item yet in this sequence
@@ -954,8 +995,10 @@ public class AlgoBIDEPlus{
 	 */
 	private void savePattern(int item, int support, List<Integer> sequenceIDs) throws IOException {
 		// increase the number of pattern found for statistics purposes
-		patternCount++; 
-	
+		if (!validPattern(1)) {
+			return; 
+		}		
+		patternCount++;	
 		// if the result should be saved to a file
 		if(writer != null){
 			// create a StringBuilder
@@ -996,8 +1039,10 @@ public class AlgoBIDEPlus{
 	 */
 	private void savePattern(int lastBufferPosition, List<PseudoSequence> pseudoSequences) throws IOException {
 		// increase the number of pattern found for statistics purposes
+		if (!validPattern(lastBufferPosition)) {
+			return;
+		}
 		patternCount++;  
-	
 		// if the result should be saved to a file
 		if(writer != null){
 			// create a StringBuilder
@@ -1049,7 +1094,7 @@ public class AlgoBIDEPlus{
 			for(int i=0; i <= lastBufferPosition; i++){
 				int token = patternBuffer[i];
 				// if it is an item
-				if(token>0){
+				if(isItem(token)){
 					currentItemset.addItem(token);
 				}else if(token == Constants.ITEMSET_END){
 					// if it is an itemset separator
@@ -1120,13 +1165,20 @@ public class AlgoBIDEPlus{
 					if(itemCountInCurrentItemset > 1){
 						containsItemsetsWithMultipleItems = true;
 					}
-				}else if(token == Constants.ITEMSET_END || token == Constants.MEET_AT){
+				}else if(token == Constants.ITEMSET_END){
 					// if it is the end of an itemset, reste the item count per itemset.
 					itemCountInCurrentItemset = 0;
 				}
 			}
 		}
 		// return the map
+		if (Constants.DEBUG) {
+			System.out.println("DEBUG: mapSequenceID");
+			for (Integer k: mapSequenceID.keySet()) {
+				System.out.print(k + " ");
+			}
+			System.out.println();
+		}
 		return mapSequenceID;
 	}
 	
@@ -1190,7 +1242,8 @@ loopSeq:for(int sequenceID : sequenceIDs){
 				// if it is the item that we want to use for projection
 				if(token == item){
 					// if it is not the end of the sequence
-					boolean isEndOfSequence = sequence[j+1] == Constants.ITEMSET_END && sequence[j+2] == Constants.SEQUENCE_END;
+					//boolean isEndOfSequence = sequence[j+1] == Constants.ITEMSET_END && sequence[j+2] == Constants.SEQUENCE_END;
+					boolean isEndOfSequence = sequence[j+1] == Constants.SEQUENCE_END;
 					if(isEndOfSequence == false){
 						// Create a pseudo-sequence by cutting that sequence at position j, so that items from
 						// position j+1 and after remains in the sequence
@@ -1225,6 +1278,7 @@ loopSeq:for(int sequenceID : sequenceIDs){
 		
 		// Scan the projected database to calculate the list of pseudosequences containing each item.
 		// We obtain a map where a key is an item and the value is the corresponding list of pseudosequences
+		
 		Map<Integer,List<PseudoSequence>> itemsPseudoSequences = findAllFrequentPairsSingleItems(database, lastBufferPosition);
 		
 		// release the memory used by the database
@@ -1236,15 +1290,17 @@ loopSeq:for(int sequenceID : sequenceIDs){
 		for(Entry<Integer, List<PseudoSequence>> entry : itemsPseudoSequences.entrySet()){
 			// get the support of the item
 			int support = entry.getValue().size();
+			int item = entry.getKey();
 			//if the item is frequent in the current projected database
-			if(support >= minsuppAbsolute){
+			if(validExt(item) && support >= minsuppAbsolute){
 				// remember if it is the highest support found until now
 				if(support > maxSupport){
 					maxSupport = support;
 				}
 				
-				//Create the new pattern by appending the item  to the current pattern that we are extending
-				patternBuffer[lastBufferPosition+1] = entry.getKey();
+				//Create the new pattern by appending the item to the current pattern that we are extending
+				patternBuffer[lastBufferPosition+1] = item;
+				
 
 				// check if the resulting pattern passes the backscan pruning check
 				boolean passBackscanPruning = checkBackscanPruningSingleItems(lastBufferPosition+1, entry.getValue());
@@ -1252,12 +1308,12 @@ loopSeq:for(int sequenceID : sequenceIDs){
 				// if we should not prune the resulting pattern according to the backscan pruning
 				if(passBackscanPruning){
 					// we use this variable to find the largest support of extension of the new  pattern
-					
+					addMatch(item);
 					int maxSupportExtensions = 0;
 					// make a recursive call
 					if( k < maximumPatternLength){
 						// make a recursive call to recursively extend the new pattern
-						maxSupportExtensions = recursionSingleItems(entry.getValue(), k+1, lastBufferPosition+1);
+						maxSupportExtensions = recursionSingleItems(entry.getValue(), k+1, lastBufferPosition+1); // NOT PROJECTED!!
 					}
 					
 					// if the new pattern has no forward extension (an extension having the same support)
@@ -1293,8 +1349,6 @@ loopSeq:for(int sequenceID : sequenceIDs){
 	 */
 	private boolean checkBackscanPruningSingleItems(int lastBufferPosition, List<PseudoSequence> projectedDatabase) {
 
-
-		
 		// we will check the backscan pruning condition for each item in the current pattern
 loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			// As an optimization, we will use a variable to remember the highest support until now.
@@ -1322,7 +1376,7 @@ loopSeq:	for(int k =0; k < projectedDatabase.size(); k++){
 				for(int j=0; sequence[j] != Constants.SEQUENCE_END; j++){
 					int token = sequence[j];
 					// if it is a start item
-					if(token > Constants.SYMBOL_START){//###
+					if(isItem(token)){//###
 						// if we have found the item that we are looking
 						if(token == patternBuffer[currentPositionToMatch]){
 							// if it was the last item that we were looking for, we stop
@@ -1410,7 +1464,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					for(int j=0; j < sequence.length; j++){
 						int token = sequence[j];
 						// if it is a start item
-						if (token > Constants.SYMBOL_START) {//###
+						if (isItem(token)) {//###
 						// if we have found the item that we are looking for
 							if(token == patternBuffer[currentPositionToMatch1]){
 								// if it was the last item that we were looking for, we stop
@@ -1438,7 +1492,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				for(int j=sequence.length-1; j >= posAfterFirstInstance; j--){
 					int token = sequence[j];
 					// if it is a start item
-					if(token > Constants.SYMBOL_START){ //###
+					if(isItem(token)){ //###
 						// if we have found the item that we are looking for
 						if(currentPositionToMatch >= i && token == patternBuffer[currentPositionToMatch]){
 							// found an item, we will search for the next item
@@ -1520,9 +1574,8 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			Pair pair = entry.getKey();
 			// Get the support of that pair
 			int support = pair.getCount();
-			
-			// if the item is frequent in the current projected database
-			if(pair.getCount() >= minsuppAbsolute){
+			// if the item is frequent in the current projected database & item is not a finish item wo matching start
+			if(validExt(pair.item) && pair.getCount() >= minsuppAbsolute){
 				
 				// If it is the item with the highest support until, we will remember that support value
 				if(support > maxSupport){
@@ -1539,6 +1592,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				
 				// If the new pattern should  not be pruned according to the backscan pruning condition
 				if(passBackscanPruning){
+					addMatch(pair.item);
 					// make a recursive call to explore extensions of the new pattern
 					int maxSupportExtensions = 0;
 					if( k < maximumPatternLength){
@@ -1566,8 +1620,8 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			// get the support of that item
 			int support = pair.getCount();
 			
-			// if the item is frequent in the current projected database
-			if(support >= minsuppAbsolute){
+			// if the item is frequent in the current projected database & it's not a single finish
+			if(validExt(pair.item) && support >= minsuppAbsolute){
 
 				// If it is the item with the highest support until, we will remember that support value
 				if(support > maxSupport){
@@ -1586,7 +1640,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 
 				// If the new pattern should  not be pruned according to the backscan pruning condition
 				if(passBackscanPruning){
-
+					addMatch(pair.item);
 					// make a recursive call to explore extensions of the new pattern
 					int maxSupportExtensions = 0;
 					// make a recursive call
@@ -1594,7 +1648,6 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 						// the recursive call return the largest support value among extension of the new pattern
 						maxSupportExtensions = recursionMultipleItems(pair.getPseudoSequences(), k+1, newBuferPosition);
 					}
-
 					// if the new pattern has no forward extension (an extension having the same support, it may be closed
 					if(support != maxSupportExtensions){
 
@@ -1798,7 +1851,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					}
 				} 
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){ //###
+				if(isItem(token)){ //###
 					boolean justMatched = false;
 					// if we matched the full itemset containing ei-1
 					if(!inAnotherPostfix && i != 0 &&  patternBuffer[postfixItemToMatch] == token){
@@ -2016,7 +2069,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					posItemLast = -999;
 				}
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){//###
+				if(isItem(token)){//###
 					// If it is an item that we look to match
 					if(token == patternBuffer[currentPositionToMatch]){
 						// we will save the  position of the first item that match in this itemset
@@ -2088,7 +2141,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 					postfixItemToMatch = posItemsetFirst;
 				} 
 				// if it is a start item
-				if(token > Constants.SYMBOL_START){//###
+				if(isItem(token)){//###
 					boolean justMatched = false;
 					// if we matched the full itemset containing ei-1
 					if(!inAnotherPostfix && i != 0 &&  patternBuffer[postfixItemToMatch] == token){
@@ -2226,8 +2279,8 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			for(int i = pseudoSequence.indexFirstItem;  sequence[i] != Constants.SEQUENCE_END ; i++){
 				int token = sequence[i];
 				
-				// if it is a start item
-				if (token > Constants.SYMBOL_START) { //###
+				// if it is an item
+				if (isItem(token)) { //###
 					// get the pair object stored in the map if there is one already
 					List<PseudoSequence> listSequences = mapItemsPseudoSequences.get(token);
 					// if there is no pair object yet
@@ -2251,6 +2304,13 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 		}
 		MemoryLogger.getInstance().checkMemory();  // check the memory for statistics.
 		// return the map of pairs
+		if (Constants.DEBUG) {
+			System.out.println("DEBUG: mapItemsPseudoSequences");
+			for (Integer k: mapItemsPseudoSequences.keySet()) {
+				System.out.print(k + " ");
+			}
+			System.out.println();
+		}
 		return mapItemsPseudoSequences;
 	}
 	
@@ -2308,7 +2368,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 				int token = sequence[i];
 				
 				// if it is a start item
-				if (token > Constants.SYMBOL_START) {//###
+				if (isItem(token)) {//###
 					// create the pair corresponding to this item
 					Pair pair = new Pair(token);   
 					// get the pair object store in the map if there is one already
@@ -2387,7 +2447,7 @@ loopi:	for(int i=0; i <= lastBufferPosition; i++){
 			}
 		}
 		MemoryLogger.getInstance().checkMemory();  // check the memory for statistics.
-		// return the map of pairs
+		// return the map of pairs		
 		return mapsPairs;
 	}
 
